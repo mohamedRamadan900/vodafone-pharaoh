@@ -5,6 +5,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FaceDetection as FaceDetectionType, Results } from '@mediapipe/face_detection';
+import * as faceapi from 'face-api.js';
 import {
   PHARAOHS, PharaohMatch, MediaPipeRatioProfile,
   matchMediaPipeRatios, mpRatioDistance,
@@ -206,7 +207,7 @@ const MP_LEFT_EAR   = 5;
                   </div>
                 </div>
 
-                <!-- Score ring -->
+                <!-- Score ring + gender badge -->
                 <div class="flex items-center gap-5">
                   <svg width="80" height="80" viewBox="0 0 80 80">
                     <circle cx="40" cy="40" r="34" fill="none" stroke="#3a2e1a" stroke-width="8"/>
@@ -222,12 +223,19 @@ const MP_LEFT_EAR   = 5;
                       {{ match()!.similarity }}%
                     </text>
                   </svg>
-                  <div>
+                  <div class="space-y-1.5">
                     <p class="text-sand text-sm font-semibold">Similarity Score</p>
-                    <span class="text-xs px-2 py-0.5 rounded-full font-semibold mt-1 inline-block"
+                    <span class="text-xs px-2 py-0.5 rounded-full font-semibold inline-block"
                           [class]="confidenceBadgeClass(match()!.confidence)">
                       {{ match()!.confidence }} Confidence
                     </span>
+                    @if (detectedGender()) {
+                      <div class="flex items-center gap-1.5 text-xs text-sand-dim/80">
+                        <span>{{ detectedGender()!.value === 'male' ? '♂' : '♀' }}</span>
+                        <span class="capitalize">{{ detectedGender()!.value }}</span>
+                        <span class="text-sand-dim/50">({{ (detectedGender()!.probability * 100) | number:'1.0-0' }}%)</span>
+                      </div>
+                    }
                   </div>
                 </div>
 
@@ -365,11 +373,13 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
   readonly liveKeypoints  = signal(false);
   readonly showOverlay    = signal(false);
   readonly detectedRatios = signal<MediaPipeRatioProfile | null>(null);
+  readonly detectedGender = signal<{ value: 'male' | 'female'; probability: number } | null>(null);
 
-  private detector:    FaceDetectionType | null = null;
-  private stream:      MediaStream | null        = null;
-  private rafId:       number | null             = null;
-  private liveResults: Results | null            = null;
+  private detector:         FaceDetectionType | null = null;
+  private stream:           MediaStream | null        = null;
+  private rafId:            number | null             = null;
+  private liveResults:      Results | null            = null;
+  private genderModelReady  = false;
 
   ratioEntries() {
     const r = this.detectedRatios();
@@ -529,6 +539,19 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
     reader.readAsDataURL(file);
   }
 
+  // ── Gender model (lazy, shared with Solution A if already loaded) ─────────
+  private async ensureGenderModel(): Promise<void> {
+    if (this.genderModelReady) return;
+    const MODEL_URL = '/assets/models';
+    if (!faceapi.nets.ssdMobilenetv1.isLoaded) {
+      await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+    }
+    if (!faceapi.nets.ageGenderNet.isLoaded) {
+      await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
+    }
+    this.genderModelReady = true;
+  }
+
   // ── Detection ─────────────────────────────────────────────
   async detectAndMatch(): Promise<void> {
     const dataUrl = this.capturedDataUrl();
@@ -538,6 +561,7 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
     this.noFaceDetected.set(false);
     this.match.set(null);
     this.detectedRatios.set(null);
+    this.detectedGender.set(null);
 
     try {
       const img = await this.loadImage(dataUrl);
@@ -582,7 +606,23 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
         faceAspectRatio,
       };
       this.detectedRatios.set(ratios);
-      const result = matchMediaPipeRatios(ratios);
+
+      // Detect gender via face-api.js (loads models once, reuses if Solution A ran first)
+      let gender: 'male' | 'female' | undefined;
+      try {
+        await this.ensureGenderModel();
+        const gd = await faceapi
+          .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }))
+          .withAgeAndGender();
+        if (gd) {
+          gender = gd.gender as 'male' | 'female';
+          this.detectedGender.set({ value: gender, probability: gd.genderProbability });
+        }
+      } catch {
+        // Gender detection is best-effort; proceed without it if it fails
+      }
+
+      const result = matchMediaPipeRatios(ratios, gender);
       this.match.set(result);
       this.state.set('result');
     } catch (err) {
@@ -671,6 +711,7 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
     this.match.set(null);
     this.noFaceDetected.set(false);
     this.detectedRatios.set(null);
+    this.detectedGender.set(null);
     this.state.set('idle');
   }
 

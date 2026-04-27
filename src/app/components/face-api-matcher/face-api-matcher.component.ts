@@ -223,10 +223,9 @@ type AppState =
                   </div>
                 </div>
 
-                <!-- Score ring -->
+                <!-- Score ring + gender badge -->
                 <div class="flex items-center gap-5">
                   <div class="relative shrink-0">
-                    <!-- SVG ring -->
                     <svg width="80" height="80" viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#3a2e1a" stroke-width="8"/>
                       <circle
@@ -245,16 +244,21 @@ type AppState =
                       </text>
                     </svg>
                   </div>
-                  <div>
+                  <div class="space-y-1.5">
                     <p class="text-sand text-sm font-semibold">Similarity Score</p>
-                    <div class="flex items-center gap-2 mt-1">
-                      <span
-                        class="text-xs px-2 py-0.5 rounded-full font-semibold"
-                        [class]="confidenceBadgeClass(match()!.confidence)"
-                      >
-                        {{ match()!.confidence }} Confidence
-                      </span>
-                    </div>
+                    <span
+                      class="text-xs px-2 py-0.5 rounded-full font-semibold"
+                      [class]="confidenceBadgeClass(match()!.confidence)"
+                    >
+                      {{ match()!.confidence }} Confidence
+                    </span>
+                    @if (detectedGender()) {
+                      <div class="flex items-center gap-1.5 text-xs text-sand-dim/80">
+                        <span>{{ detectedGender()!.value === 'male' ? '♂' : '♀' }}</span>
+                        <span class="capitalize">{{ detectedGender()!.value }}</span>
+                        <span class="text-sand-dim/50">({{ (detectedGender()!.probability * 100) | number:'1.0-0' }}%)</span>
+                      </div>
+                    }
                   </div>
                 </div>
 
@@ -337,9 +341,10 @@ type AppState =
         </summary>
         <div class="mt-4 text-sand-dim text-sm space-y-2 leading-relaxed">
           <p>
-            1. <strong class="text-sand">Model Loading</strong> — Three TensorFlow.js models are
+            1. <strong class="text-sand">Model Loading</strong> — Four TensorFlow.js models are
             loaded from <code class="text-gold">/assets/models/</code>:
-            SSD MobileNet (face detection), Face Landmark 68 Net, and Face Recognition Net.
+            SSD MobileNet (face detection), Face Landmark 68 Net, Face Recognition Net,
+            and Age &amp; Gender Net.
           </p>
           <p>
             2. <strong class="text-sand">Landmark Extraction</strong> — face-api.js locates
@@ -351,9 +356,10 @@ type AppState =
             nose length, and chin-mouth distance — all relative to face dimensions).
           </p>
           <p>
-            4. <strong class="text-sand">Profile Matching</strong> — The ratio vector is compared
-            to eight pharaoh profiles derived from archaeological evidence using
-            Euclidean distance. The closest profile wins.
+            4. <strong class="text-sand">Gender-Aware Matching</strong> — The Age &amp; Gender
+            Net detects your gender, restricting candidates to same-gender pharaohs before
+            Euclidean-distance matching. This halves the search space and eliminates
+            cross-gender false matches.
           </p>
         </div>
       </details>
@@ -373,6 +379,7 @@ export class FaceApiMatcherComponent implements OnInit, OnDestroy {
   readonly match           = signal<PharaohMatch | null>(null);
   readonly noFaceDetected  = signal(false);
   readonly detectedRatios  = signal<FacialRatioProfile | null>(null);
+  readonly detectedGender  = signal<{ value: 'male' | 'female'; probability: number } | null>(null);
 
   private stream: MediaStream | null = null;
 
@@ -431,6 +438,10 @@ export class FaceApiMatcherComponent implements OnInit, OnDestroy {
       this.loadingMessage.set('Loading Face Recognition Net…');
       this.loadingPct.set(75);
       await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+
+      this.loadingMessage.set('Loading Age & Gender Net…');
+      this.loadingPct.set(90);
+      await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
 
       this.loadingPct.set(100);
       this.state.set('idle');
@@ -515,12 +526,14 @@ export class FaceApiMatcherComponent implements OnInit, OnDestroy {
     this.noFaceDetected.set(false);
     this.match.set(null);
     this.detectedRatios.set(null);
+    this.detectedGender.set(null);
 
     try {
       const img = await faceapi.fetchImage(dataUrl);
       const detection = await faceapi
         .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }))
-        .withFaceLandmarks();
+        .withFaceLandmarks()
+        .withAgeAndGender();
 
       if (!detection) {
         this.noFaceDetected.set(true);
@@ -528,9 +541,12 @@ export class FaceApiMatcherComponent implements OnInit, OnDestroy {
         return;
       }
 
+      const gender = detection.gender as 'male' | 'female';
+      this.detectedGender.set({ value: gender, probability: detection.genderProbability });
+
       const ratios = this.computeRatios(detection.landmarks);
       this.detectedRatios.set(ratios);
-      const result = matchFacialRatios(ratios);
+      const result = matchFacialRatios(ratios, gender);
       this.match.set(result);
       this.state.set('result');
     } catch (err) {
@@ -585,6 +601,7 @@ export class FaceApiMatcherComponent implements OnInit, OnDestroy {
     this.capturedDataUrl.set(null);
     this.match.set(null);
     this.detectedRatios.set(null);
+    this.detectedGender.set(null);
     this.noFaceDetected.set(false);
     this.state.set('idle');
   }

@@ -40,6 +40,7 @@ export interface PharaohProfile {
   emoji:       string;
   accentColor: string;
   imageUrl:    string;   // path relative to src/assets/pharaohs/
+  gender:      'male' | 'female';
   // Ratio profiles used by the matching algorithms
   ratios:      FacialRatioProfile;
   mpRatios:    MediaPipeRatioProfile;
@@ -71,6 +72,7 @@ export const PHARAOHS: PharaohProfile[] = [
     emoji: '👑',
     accentColor: '#d4a847',
     imageUrl: 'assets/pharaohs/ramesses-ii.jpg',
+    gender: 'male',
     // Signature: broadest nose + highest jaw (wide powerful face)
     ratios: { eyeSpanToFace: 0.44, noseWidthToFace: 0.28, mouthWidthToFace: 0.35, jawToFace: 0.93, noseLengthNorm: 0.51, mouthChinNorm: 0.22 },
     // Broad face, moderate eyes, long nose, mid aspect
@@ -89,6 +91,7 @@ export const PHARAOHS: PharaohProfile[] = [
     emoji: '🏺',
     accentColor: '#c9a84c',
     imageUrl: 'assets/pharaohs/tutankhamun.jpg',
+    gender: 'male',
     // Signature: widest eye span + fullest mouth + short nose (youthful rounded face)
     ratios: { eyeSpanToFace: 0.53, noseWidthToFace: 0.18, mouthWidthToFace: 0.42, jawToFace: 0.84, noseLengthNorm: 0.37, mouthChinNorm: 0.30 },
     // Widest eyes, shortest nose, roundest face, highest aspect
@@ -107,6 +110,7 @@ export const PHARAOHS: PharaohProfile[] = [
     emoji: '👸',
     accentColor: '#5b8fc9',
     imageUrl: 'assets/pharaohs/nefertiti.jpg',
+    gender: 'female',
     // Signature: narrowest nose + narrow jaw (refined sculpted features)
     ratios: { eyeSpanToFace: 0.47, noseWidthToFace: 0.16, mouthWidthToFace: 0.34, jawToFace: 0.80, noseLengthNorm: 0.47, mouthChinNorm: 0.26 },
     // Refined, slightly elongated, narrow — high ears
@@ -126,6 +130,7 @@ export const PHARAOHS: PharaohProfile[] = [
     emoji: '☀️',
     accentColor: '#e87c3e',
     imageUrl: 'assets/pharaohs/akhenaten.jpg',
+    gender: 'male',
     // Signature: narrowest eye span + longest nose + narrowest jaw (most elongated face)
     ratios: { eyeSpanToFace: 0.38, noseWidthToFace: 0.20, mouthWidthToFace: 0.38, jawToFace: 0.78, noseLengthNorm: 0.58, mouthChinNorm: 0.19 },
     // Narrowest eyes, longest nose, most elongated face — triple extreme
@@ -144,6 +149,7 @@ export const PHARAOHS: PharaohProfile[] = [
     emoji: '⚖️',
     accentColor: '#8bc9a8',
     imageUrl: 'assets/pharaohs/hatshepsut.jpg',
+    gender: 'female',
     // Signature: widest jaw + narrow mouth (commanding square-jawed face)
     ratios: { eyeSpanToFace: 0.45, noseWidthToFace: 0.23, mouthWidthToFace: 0.30, jawToFace: 0.95, noseLengthNorm: 0.44, mouthChinNorm: 0.32 },
     // Close-set eyes, wide square face, short nose
@@ -162,6 +168,7 @@ export const PHARAOHS: PharaohProfile[] = [
     emoji: '⚔️',
     accentColor: '#c94c4c',
     imageUrl: 'assets/pharaohs/thutmose-iii.jpg',
+    gender: 'male',
     // Signature: wide nose + long nose + deepest chin gap (compact warrior face)
     ratios: { eyeSpanToFace: 0.42, noseWidthToFace: 0.27, mouthWidthToFace: 0.31, jawToFace: 0.88, noseLengthNorm: 0.53, mouthChinNorm: 0.34 },
     // Close-set eyes, long aquiline nose, compact elongated face
@@ -180,6 +187,7 @@ export const PHARAOHS: PharaohProfile[] = [
     emoji: '🐍',
     accentColor: '#9b59b6',
     imageUrl: 'assets/pharaohs/cleopatra-vii.jpg',
+    gender: 'female',
     // Signature: wide eyes + wide mouth + moderate nose (diplomatic balanced face)
     ratios: { eyeSpanToFace: 0.49, noseWidthToFace: 0.25, mouthWidthToFace: 0.39, jawToFace: 0.87, noseLengthNorm: 0.43, mouthChinNorm: 0.27 },
     // Wide expressive eyes, balanced oval face, medium nose
@@ -198,6 +206,7 @@ export const PHARAOHS: PharaohProfile[] = [
     emoji: '🏛️',
     accentColor: '#f0c040',
     imageUrl: 'assets/pharaohs/amenhotep-iii.jpg',
+    gender: 'male',
     // Signature: widest mouth + widest eyes + short nose (full rounded face)
     ratios: { eyeSpanToFace: 0.52, noseWidthToFace: 0.22, mouthWidthToFace: 0.44, jawToFace: 0.86, noseLengthNorm: 0.38, mouthChinNorm: 0.31 },
     // Cherubic wide face, wide eyes, medium-short nose, high ears
@@ -236,10 +245,15 @@ export function scoreToConfidence(score: number): 'Low' | 'Medium' | 'High' {
   return 'Low';
 }
 
-/** Find the best-matching pharaoh from a facial ratio profile. */
-export function matchFacialRatios(userRatios: FacialRatioProfile): PharaohMatch {
-  let best = { pharaoh: PHARAOHS[0], dist: Infinity };
-  for (const pharaoh of PHARAOHS) {
+/** Find the best-matching pharaoh from a facial ratio profile.
+ *  Pass gender to restrict candidates to matching-gender pharaohs. */
+export function matchFacialRatios(
+  userRatios: FacialRatioProfile,
+  gender?: 'male' | 'female',
+): PharaohMatch {
+  const pool = gender ? PHARAOHS.filter(p => p.gender === gender) : PHARAOHS;
+  let best = { pharaoh: pool[0], dist: Infinity };
+  for (const pharaoh of pool) {
     const dist = facialRatioDistance(userRatios, pharaoh.ratios);
     if (dist < best.dist) best = { pharaoh, dist };
   }
@@ -252,16 +266,21 @@ export function matchFacialRatios(userRatios: FacialRatioProfile): PharaohMatch 
 }
 
 /** Find the best-matching pharaoh from a MediaPipe ratio profile.
- *  Uses relative scoring so the result is stable regardless of absolute distance scale. */
-export function matchMediaPipeRatios(userRatios: MediaPipeRatioProfile): PharaohMatch {
-  const scored = PHARAOHS
+ *  Uses relative scoring so the result is stable regardless of absolute distance scale.
+ *  Pass gender to restrict candidates to matching-gender pharaohs. */
+export function matchMediaPipeRatios(
+  userRatios: MediaPipeRatioProfile,
+  gender?: 'male' | 'female',
+): PharaohMatch {
+  const pool = gender ? PHARAOHS.filter(p => p.gender === gender) : PHARAOHS;
+  const scored = pool
     .map(p => ({ pharaoh: p, dist: mpRatioDistance(userRatios, p.mpRatios) }))
     .sort((a, b) => a.dist - b.dist);
 
   const winner  = scored[0];
   const spread  = (scored[scored.length - 1].dist - winner.dist) || 0.001;
-  const clarity = Math.min(1, spread / 0.12);   // 0→1 as spread grows past 0.12
-  const similarity = Math.round(48 + clarity * 42); // clamps to 48 – 90
+  const clarity = Math.min(1, spread / 0.12);
+  const similarity = Math.round(48 + clarity * 42);
 
   return {
     pharaoh:    winner.pharaoh,
