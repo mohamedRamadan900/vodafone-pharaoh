@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base resets ─── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #0f0a04;
+  color: #f5e6c8;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { background: #1c1408; }
+::-webkit-scrollbar-thumb  { background: #c9a84c55; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #c9a84c; }
+
+/* ─── Utility classes ─── */
+@layer components {
+  .btn-gold {
+    @apply px-5 py-2.5 rounded-lg font-semibold text-sm
+           bg-gold text-pharaoh-bg
+           hover:bg-gold-light active:scale-95
+           transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply px-5 py-2.5 rounded-lg font-semibold text-sm
+           border border-gold text-gold
+           hover:bg-gold hover:text-pharaoh-bg active:scale-95
+           transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .card {
+    @apply bg-dark-card border border-dark-border rounded-2xl p-6;
+  }
+
+  .section-title {
+    @apply font-display text-gold text-xl font-semibold tracking-wide;
+  }
+
+  .spinner {
+    @apply w-8 h-8 border-4 border-dark-border border-t-gold rounded-full animate-spin;
+  }
+}
+
+/* ─── Video element ─── */
+video {
+  transform: scaleX(-1); /* Mirror for selfie view */
+}
+
+/* ─── Canvas overlay ─── */
+canvas.overlay {
+  position: absolute;
+  top: 0; left: 0;
+  pointer-events: none;
+}
+
+/* ─── Hieroglyph decorative border ─── */
+.hieroglyph-border {
+  border-image: linear-gradient(90deg, transparent, #c9a84c, transparent) 1;
+}
+
+/* ─── Tab active gold underline ─── */
+.tab-active-bar {
+  position: absolute;
+  bottom: -2px;
+  left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+  border-radius: 2px;
+}
+
+/* ─── Result card shimmer ─── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #1c1408 25%, #2a1e0c 50%, #1c1408 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* ─── Score ring ─── */
+.score-ring {
+  background: conic-gradient(#c9a84c var(--pct), #3a2e1a var(--pct));
+}
