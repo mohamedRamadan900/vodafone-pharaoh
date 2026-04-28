@@ -85,13 +85,6 @@ const MP_LEFT_EAR   = 5;
                 [class.hidden]="!cameraActive()"
               ></video>
 
-              <!-- Landmark overlay canvas -->
-              <canvas
-                #overlayEl
-                class="overlay w-full h-full"
-                [class.hidden]="!showOverlay()"
-              ></canvas>
-
               @if (!cameraActive() && !capturedDataUrl()) {
                 <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-sand-dim/50">
                   <span class="text-6xl">📡</span>
@@ -103,6 +96,13 @@ const MP_LEFT_EAR   = 5;
                 <img [src]="capturedDataUrl()" alt="Captured"
                      class="w-full h-full object-cover"/>
               }
+
+              <!-- Landmark overlay canvas — rendered last so it sits on top -->
+              <canvas
+                #overlayEl
+                class="overlay w-full h-full z-10"
+                [class.hidden]="!showOverlay()"
+              ></canvas>
 
               @if (state() === 'processing') {
                 <div class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3">
@@ -238,6 +238,30 @@ const MP_LEFT_EAR   = 5;
                     }
                   </div>
                 </div>
+
+                <!-- Per-feature closest pharaoh -->
+                @if (keypointWinners().length) {
+                  <div>
+                    <p class="text-xs text-sand-dim/70 uppercase tracking-widest mb-2">
+                      Closest Pharaoh per Feature
+                    </p>
+                    <div class="grid grid-cols-2 gap-2">
+                      @for (kw of keypointWinners(); track kw.label) {
+                        <div class="bg-dark-border/40 rounded-lg p-2.5 flex items-center gap-2 min-w-0">
+                          <span class="text-xl leading-none shrink-0">{{ kw.icon }}</span>
+                          <div class="min-w-0 flex-1">
+                            <p class="text-[10px] text-sand-dim/60 uppercase tracking-wide">{{ kw.label }}</p>
+                            <p class="text-gold font-semibold text-xs truncate">{{ kw.winner.name }}</p>
+                          </div>
+                          <span class="text-lg leading-none shrink-0">{{ kw.winner.emoji }}</span>
+                        </div>
+                      }
+                    </div>
+                    <p class="text-[10px] text-sand-dim/40 mt-1.5 italic">
+                      Overall match may differ — it weighs all features together.
+                    </p>
+                  </div>
+                }
 
                 <!-- Detected ratios table -->
                 @if (detectedRatios()) {
@@ -385,11 +409,37 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
     const r = this.detectedRatios();
     if (!r) return [];
     return [
-      { label: 'Eye X-span',    value: r.eyeXSpan },
-      { label: 'Nose Y-pos',    value: r.nosePositionY },
-      { label: 'Ear Y-pos',     value: r.earPositionY },
-      { label: 'Face W/H',      value: r.faceAspectRatio },
+      { label: 'Eye X-span', value: r.eyeXSpan },
+      { label: 'Nose Y-pos', value: r.nosePositionY },
+      { label: 'Ear Y-pos',  value: r.earPositionY },
+      { label: 'Face W/H',   value: r.faceAspectRatio },
     ];
+  }
+
+  // Per-dimension winner: which pharaoh is closest for each individual ratio.
+  keypointWinners() {
+    const r = this.detectedRatios();
+    if (!r) return [];
+    const dims: Array<{
+      label: string;
+      icon:  string;
+      key:   keyof MediaPipeRatioProfile;
+    }> = [
+      { label: 'Eye width',    icon: '👁',  key: 'eyeXSpan'        },
+      { label: 'Nose height',  icon: '👃',  key: 'nosePositionY'   },
+      { label: 'Ear position', icon: '👂',  key: 'earPositionY'    },
+      { label: 'Face shape',   icon: '⬜', key: 'faceAspectRatio' },
+    ];
+    return dims.map(dim => {
+      const winner = PHARAOHS.reduce(
+        (best, p) => {
+          const diff = Math.abs(r[dim.key] - p.mpRatios[dim.key]);
+          return diff < best.diff ? { pharaoh: p, diff } : best;
+        },
+        { pharaoh: PHARAOHS[0], diff: Infinity },
+      );
+      return { label: dim.label, icon: dim.icon, winner: winner.pharaoh };
+    });
   }
 
   allScores() {
@@ -625,6 +675,18 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
       const result = matchMediaPipeRatios(ratios, gender);
       this.match.set(result);
       this.state.set('result');
+
+      // Draw styled keypoints on the captured/uploaded image overlay
+      const overlayCanvas = this.overlayRef?.nativeElement;
+      if (overlayCanvas) {
+        const parent = overlayCanvas.parentElement;
+        if (parent) {
+          overlayCanvas.width  = parent.clientWidth;
+          overlayCanvas.height = parent.clientHeight;
+        }
+        this.drawDetectionOverlay(overlayCanvas, [detection]);
+        this.showOverlay.set(true);
+      }
     } catch (err) {
       this.errorMessage.set(
         'Detection failed. ' + (err instanceof Error ? err.message : String(err)),
@@ -665,34 +727,134 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
 
   // ── Live overlay drawing ──────────────────────────────────
   private drawOverlay(results: Results): void {
-    const canvas  = this.overlayRef?.nativeElement;
-    const video   = this.videoRef?.nativeElement;
+    const canvas = this.overlayRef?.nativeElement;
+    const video  = this.videoRef?.nativeElement;
     if (!canvas || !video) return;
-
     canvas.width  = video.clientWidth;
     canvas.height = video.clientHeight;
+    this.drawDetectionOverlay(canvas, results.detections ?? []);
+  }
+
+  // ── Shared styled overlay renderer ────────────────────────
+  // Used for both the live camera feed and captured/uploaded images.
+  private drawDetectionOverlay(
+    canvas: HTMLCanvasElement,
+    detections: Array<{
+      landmarks?:   Array<{ x: number; y: number }>;
+      boundingBox?: { xCenter: number; yCenter: number; width: number; height: number } | null;
+    }>,
+  ): void {
     const ctx = canvas.getContext('2d')!;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const W = canvas.width;
+    const H = canvas.height;
 
-    for (const detection of results.detections ?? []) {
-      const bb = detection.boundingBox;
+    // Egyptian-palette per-keypoint styles
+    const KP = [
+      { label: 'R.Eye', color: '#5b8fc9', r: 7 },  // lapis blue
+      { label: 'L.Eye', color: '#5b8fc9', r: 7 },
+      { label: 'Nose',  color: '#c9a84c', r: 8 },  // gold
+      { label: 'Mouth', color: '#e87c3e', r: 7 },  // copper
+      { label: 'R.Ear', color: '#8bc9a8', r: 6 },  // jade
+      { label: 'L.Ear', color: '#8bc9a8', r: 6 },
+    ];
+
+    for (const det of detections) {
+      // ── Bounding box with pharaoh-style corner accents ───
+      const bb = det.boundingBox;
       if (bb) {
-        const x = bb.xCenter   * canvas.width  - (bb.width  * canvas.width)  / 2;
-        const y = bb.yCenter   * canvas.height - (bb.height * canvas.height) / 2;
-        const w = bb.width     * canvas.width;
-        const h = bb.height    * canvas.height;
+        const bx = (bb.xCenter - bb.width  / 2) * W;
+        const by = (bb.yCenter - bb.height / 2) * H;
+        const bw = bb.width  * W;
+        const bh = bb.height * H;
+        const cs = 16; // corner stroke length
+
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(201,168,76,0.28)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bx, by, bw, bh);
+
         ctx.strokeStyle = '#c9a84c';
-        ctx.lineWidth   = 2;
-        ctx.strokeRect(x, y, w, h);
+        ctx.lineWidth = 2.5;
+        const corner = (cx: number, cy: number, sx: number, sy: number) => {
+          ctx.beginPath();
+          ctx.moveTo(cx + sx * cs, cy);
+          ctx.lineTo(cx, cy);
+          ctx.lineTo(cx, cy + sy * cs);
+          ctx.stroke();
+        };
+        corner(bx,      by,      1,  1);
+        corner(bx + bw, by,     -1,  1);
+        corner(bx,      by + bh, 1, -1);
+        corner(bx + bw, by + bh,-1, -1);
       }
 
-      // Draw keypoints
-      for (const kp of detection.landmarks ?? []) {
+      const kps = det.landmarks ?? [];
+      if (kps.length < 6) continue;
+
+      const px = (i: number) => kps[i].x * W;
+      const py = (i: number) => kps[i].y * H;
+
+      // ── Connecting lines (dashed, colour-coded) ──────────
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([4, 5]);
+
+      ctx.strokeStyle = 'rgba(91,143,201,0.55)';   // blue eye–eye
+      ctx.beginPath(); ctx.moveTo(px(0), py(0)); ctx.lineTo(px(1), py(1)); ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(139,201,168,0.45)';  // jade ear–ear
+      ctx.beginPath(); ctx.moveTo(px(4), py(4)); ctx.lineTo(px(5), py(5)); ctx.stroke();
+
+      const emx = (px(0) + px(1)) / 2;             // eye midpoint X
+      const emy = (py(0) + py(1)) / 2;             // eye midpoint Y
+      ctx.strokeStyle = 'rgba(201,168,76,0.50)';   // gold vertical axis
+      ctx.beginPath();
+      ctx.moveTo(emx, emy);
+      ctx.lineTo(px(2), py(2));
+      ctx.lineTo(px(3), py(3));
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+
+      // ── Keypoint dots (glow + label) ─────────────────────
+      kps.slice(0, 6).forEach((kp, i) => {
+        const { label, color, r } = KP[i];
+        const x = kp.x * W;
+        const y = kp.y * H;
+
+        // Outer glow ring
         ctx.beginPath();
-        ctx.arc(kp.x * canvas.width, kp.y * canvas.height, 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#e8c96a';
+        ctx.arc(x, y, r + 6, 0, Math.PI * 2);
+        ctx.fillStyle = color + '22';
         ctx.fill();
-      }
+
+        // Mid ring
+        ctx.beginPath();
+        ctx.arc(x, y, r + 3, 0, Math.PI * 2);
+        ctx.fillStyle = color + '50';
+        ctx.fill();
+
+        // Solid dot
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        // White centre highlight
+        ctx.beginPath();
+        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        // Label with drop-shadow
+        ctx.font = 'bold 9px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+        ctx.shadowBlur  = 4;
+        ctx.fillStyle   = '#ffffff';
+        ctx.fillText(label, x, y - r - 5);
+        ctx.shadowBlur  = 0;
+      });
     }
   }
 
@@ -712,6 +874,9 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
     this.noFaceDetected.set(false);
     this.detectedRatios.set(null);
     this.detectedGender.set(null);
+    this.showOverlay.set(false);
+    const c = this.overlayRef?.nativeElement;
+    if (c) c.getContext('2d')?.clearRect(0, 0, c.width, c.height);
     this.state.set('idle');
   }
 

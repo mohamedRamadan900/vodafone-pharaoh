@@ -130,3 +130,7 @@ src/
 - **face-api.js 0.22** (Tab 1)
 - **@anthropic-ai/sdk** (Tab 2)
 - **@mediapipe/face_detection** (Tab 3)
+
+
+      // Draw styled keypoints on the captured/uploaded image overlay
+
