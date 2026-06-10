@@ -1,0 +1,226 @@
+<div>
+  <svg
+    [ngClass]="[svg() ? 'icon-' + svg() : '', size() ? 'icon-' + size() : 'icon-4', extraClasses()]"
+    [class]="classList()"
+    [attr.viewBox]="viewBox()"
+    [attr.role]="role()"
+    [attr.tabindex]="clickable() && !disabled() ? 0 : null"
+    [attr.aria-label]="ariaLabel() || title() || null"
+    [attr.aria-hidden]="ariaHidden()"
+    [attr.focusable]="focusable()"
+    [attr.fill]="fill()"
+    [attr.stroke]="stroke()"
+    [class.svg-icon-clickable]="clickable() && !disabled()"
+    [class.svg-icon-disabled]="disabled()"
+    (click)="onClick()"
+  >
+    @if (title()) {
+      <title>{{ title() }}</title>
+    }
+    @if (svg()) {
+      <use [attr.xlink:href]="'#icon-' + svg()"></use>
+    }
+  </svg>
+</div>
+
+<svg class="d-none">
+  @if (svg() === WC26_ICONS?.SHARE) {
+  <symbol
+    [id]="'icon-' + WC26_ICONS.SHARE"
+    viewBox="0 0 32 32"
+  >
+    <path
+      fill="none"
+      stroke="#333333"
+      style="stroke: var(--color1, #333333)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="2.6661"
+      d="M23.994 10.664c2.209 0 3.999-1.79 3.999-3.999s-1.79-3.999-3.999-3.999c-2.209 0-3.999 1.79-3.999 3.999s1.79 3.999 3.999 3.999z"
+    ></path>
+    <path
+      fill="none"
+      stroke="#333333"
+      style="stroke: var(--color1, #333333)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="2.6661"
+      d="M7.998 19.996c2.209 0 3.999-1.79 3.999-3.999s-1.79-3.999-3.999-3.999-3.999 1.79-3.999 3.999c0 2.209 1.79 3.999 3.999 3.999z"
+    ></path>
+    <path
+      fill="none"
+      stroke="#333333"
+      style="stroke: var(--color1, #333333)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="2.6661"
+      d="M23.994 29.327c2.209 0 3.999-1.79 3.999-3.999s-1.79-3.999-3.999-3.999c-2.209 0-3.999 1.791-3.999 3.999s1.79 3.999 3.999 3.999z"
+    ></path>
+    <path
+      fill="none"
+      stroke="#333333"
+      style="stroke: var(--color1, #333333)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="2.6661"
+      d="M11.451 18.009l9.105 5.305"
+    ></path>
+    <path
+      fill="none"
+      stroke="#333333"
+      style="stroke: var(--color1, #333333)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="2.6661"
+      d="M20.542 8.678l-9.091 5.305"
+    ></path>
+  </symbol>
+  }
+  @if (svg() === WC26_ICONS?.RIGHT_SYMBOL) {
+  <symbol
+    [id]="'icon-' + WC26_ICONS.RIGHT_SYMBOL"
+    viewBox="0 0 64 32"
+  >
+    <path
+      fill="none"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="miter"
+      stroke-linecap="butt"
+      stroke-miterlimit="4"
+      stroke-width="2.1328"
+      d="M0 15.996c7.109-3.555 14.219-4.621 21.328-3.199s14.219 1.777 21.328 1.066 14.219 0 21.328 2.133"
+    ></path>
+    <path
+      fill="none"
+      opacity="0.6"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="miter"
+      stroke-linecap="butt"
+      stroke-miterlimit="4"
+      stroke-width="1.5996"
+      d="M5.332 19.196c7.11-2.133 14.219-2.844 21.328-2.133s14.219 0.711 21.328 0"
+    ></path>
+  </symbol>
+  }
+  @if (svg() === WC26_ICONS?.LEFT_SYMBOL) {
+  <symbol
+    [id]="'icon-' + WC26_ICONS.LEFT_SYMBOL"
+    viewBox="0 0 64 32"
+  >
+    <path
+      fill="none"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="miter"
+      stroke-linecap="butt"
+      stroke-miterlimit="4"
+      stroke-width="2.1328"
+      d="M63.985 15.996c-7.109-3.555-14.219-4.621-21.328-3.199s-14.219 1.777-21.328 1.066c-7.11-0.711-14.219 0-21.328 2.133"
+    ></path>
+    <path
+      fill="none"
+      opacity="0.6"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="miter"
+      stroke-linecap="butt"
+      stroke-miterlimit="4"
+      stroke-width="1.5996"
+      d="M58.653 19.196c-7.11-2.133-14.219-2.844-21.328-2.133s-14.219 0.711-21.328 0"
+    ></path>
+  </symbol>
+  }
+  @if (svg() === WC26_ICONS?.CAMERA) {
+  <symbol
+    [id]="'icon-' + WC26_ICONS.CAMERA"
+    viewBox="0 0 32 32"
+  >
+    <path
+      fill="#000"
+      style="fill: var(--color2, #000)"
+      d="M0 15.999c0-8.836 7.163-15.999 15.999-15.999s15.999 7.163 15.999 15.999c0 8.836-7.163 15.999-15.999 15.999s-15.999-7.163-15.999-15.999z"
+    ></path>
+    <path
+      fill="#d4af37"
+      style="fill: var(--color1, #d4af37)"
+      opacity="0.4"
+      d="M15.999 31.997v-0.908c-8.335 0-15.091-6.757-15.091-15.091h-1.815c0 9.337 7.569 16.906 16.906 16.906v-0.908zM31.997 15.999h-0.908c0 8.335-6.757 15.091-15.091 15.091v1.815c9.337 0 16.906-7.569 16.906-16.906h-0.908zM15.999 0v0.908c8.335 0 15.091 6.757 15.091 15.091h1.815c0-9.337-7.569-16.906-16.906-16.906v0.908zM15.999 0v-0.908c-9.337 0-16.906 7.569-16.906 16.906h1.815c0-8.335 6.757-15.091 15.091-15.091v-0.908z"
+    ></path>
+    <path
+      fill="none"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="1.333"
+      d="M17.667 10.664h-3.333l-1.666 2h-2c-0.354 0-0.693 0.14-0.943 0.39s-0.39 0.589-0.39 0.943v5.999c0 0.354 0.14 0.693 0.39 0.943s0.589 0.39 0.943 0.39h10.664c0.354 0 0.693-0.14 0.943-0.39s0.39-0.589 0.39-0.943v-5.999c0-0.354-0.14-0.693-0.39-0.943s-0.589-0.39-0.943-0.39h-2l-1.666-2z"
+    ></path>
+    <path
+      fill="none"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="1.333"
+      d="M16.001 18.662c1.104 0 2-0.895 2-2s-0.895-1.999-2-1.999c-1.104 0-2 0.895-2 1.999s0.895 2 2 2z"
+    ></path>
+  </symbol>
+  }
+  @if (svg() === WC26_ICONS?.GIFT) {
+  <symbol
+    [id]="'icon-' + WC26_ICONS.GIFT"
+    viewBox="0 0 32 32"
+  >
+    <path
+      fill="#000"
+      style="fill: var(--color2, #000)"
+      d="M0 15.999c0-8.836 7.163-15.999 15.999-15.999s15.999 7.163 15.999 15.999c0 8.836-7.163 15.999-15.999 15.999s-15.999-7.163-15.999-15.999z"
+    ></path>
+    <path
+      fill="#d4af37"
+      style="fill: var(--color1, #d4af37)"
+      opacity="0.4"
+      d="M15.999 31.997v-0.908c-8.335 0-15.091-6.757-15.091-15.091h-1.815c0 9.337 7.569 16.906 16.906 16.906v-0.908zM31.997 15.999h-0.908c0 8.335-6.757 15.091-15.091 15.091v1.815c9.337 0 16.906-7.569 16.906-16.906h-0.908zM15.999 0v0.908c8.335 0 15.091 6.757 15.091 15.091h1.815c0-9.337-7.569-16.906-16.906-16.906v0.908zM15.999 0v-0.908c-9.337 0-16.906 7.569-16.906 16.906h1.815c0-8.335 6.757-15.091 15.091-15.091v-0.908z"
+    ></path>
+    <path
+      fill="none"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="1.333"
+      d="M16.001 22.662c3.681 0 6.665-2.984 6.665-6.665s-2.984-6.665-6.665-6.665c-3.681 0-6.665 2.984-6.665 6.665s2.984 6.665 6.665 6.665z"
+    ></path>
+    <path
+      fill="none"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="1.333"
+      d="M16.001 19.995c2.209 0 3.999-1.79 3.999-3.999s-1.79-3.999-3.999-3.999c-2.209 0-3.999 1.79-3.999 3.999s1.79 3.999 3.999 3.999z"
+    ></path>
+    <path
+      fill="none"
+      stroke="#d4af37"
+      style="stroke: var(--color1, #d4af37)"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="1.333"
+      d="M16.001 17.329c0.736 0 1.333-0.597 1.333-1.333s-0.597-1.333-1.333-1.333c-0.736 0-1.333 0.597-1.333 1.333s0.597 1.333 1.333 1.333z"
+    ></path>
+  </symbol>
+  }
+</svg>

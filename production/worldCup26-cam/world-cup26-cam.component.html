@@ -1,0 +1,18 @@
+<div
+  class="world-cup26-cam-container"
+  [style.backgroundImage]="'url(' + backgroundImageUrl() + ')'"
+>
+  @if (!isResultRoute() && !isLoading() && overlayConfig(); as overlay) {
+    <app-world-cup26-error-overlay
+      [overlay]="overlay"
+      (action)="handleErrorAction()"
+    />
+  }
+
+  @if (isResultRoute() || (!isLoading() && !shouldShowErrorOverlay())) {
+    <router-outlet></router-outlet>
+  }
+  @if (isGenerationLoading()) {
+    <app-world-cup26-spinner />
+  }
+</div>

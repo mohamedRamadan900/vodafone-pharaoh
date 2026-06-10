@@ -1,0 +1,27 @@
+<button
+  [type]="type()"
+  [disabled]="isDisabled()"
+  [class]="buttonClasses()"
+  [attr.aria-label]="ariaLabel() ?? (labelKey() ? (labelKey() | translate) : null)"
+  (click)="onClick()"
+>
+  <span class="btn-content">
+    @if (icon() && iconPosition() === 'start') {
+      <span class="btn-icon btn-icon-start">{{ icon() }}</span>
+    }
+
+    @if (labelKey()) {
+      <span class="btn-text">
+        {{ labelKey() | translate }}
+      </span>
+    }
+
+    <span class="btn-projected-content">
+      <ng-content></ng-content>
+    </span>
+
+    @if (icon() && iconPosition() === 'end') {
+      <span class="btn-icon btn-icon-end">{{ icon() }}</span>
+    }
+  </span>
+</button>

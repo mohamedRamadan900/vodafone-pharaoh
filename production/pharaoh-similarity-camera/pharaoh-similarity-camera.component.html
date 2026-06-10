@@ -1,0 +1,217 @@
+<div
+  class="camera-screen camera-screen--full-frame camera-screen-full"
+  [class.camera-screen--has-background]="hasBackgroundAsset()"
+  [class.camera-screen--processing]="state() === 'processing'"
+  [class.camera-screen-full--has-background]="hasBackgroundAsset()"
+  [class.camera-screen-full--processing]="state() === 'processing' || isGenerationLoading()"
+  [style.background-image]="backgroundImageStyle()"
+  [ngClass]="customClasses()?.screen"
+>
+  <div
+    *ngIf="state() === 'error'"
+    class="camera-screen__error"
+    role="alert"
+    aria-live="assertive"
+    [ngClass]="customClasses()?.errorOverlay"
+  >
+    <div class="camera-screen__error-overlay">
+      <div
+        class="camera-screen__error-icon"
+        aria-hidden="true"
+      >
+        <img
+          [src]="resolvedErrorIconUrl()"
+          [alt]="resolvedCopy().errorIconAlt"
+        />
+      </div>
+
+      <div class="camera-screen__error-copy">
+        <h2 class="camera-screen__error-title">{{ failureTitle() }}</h2>
+      </div>
+
+      <button
+        type="button"
+        class="camera-screen__error-button"
+        (click)="handleFailureAction()"
+      >
+        {{ failureButtonText() }}
+      </button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="state() === 'loading'"
+    class="camera-screen__loader"
+    role="status"
+    aria-live="polite"
+  >
+    <span class="camera-screen__spinner"></span>
+  </div>
+
+  <main class="camera-screen__content camera-screen-full__content">
+    <section
+      class="camera-screen__viewer camera-screen__viewer--full-frame camera-screen-full__viewer"
+      [attr.aria-label]="resolvedCopy().cameraPreviewLabel"
+      [ngClass]="customClasses()?.viewer"
+    >
+      <div class="camera-screen-full__frame-shell">
+        <div class="camera-screen-full__media-stage">
+          <video
+            #videoEl
+            autoplay
+            muted
+            playsinline
+            class="camera-screen__video camera-screen__video--full-frame camera-screen-full__video"
+            [class.camera-screen__video--flipped]="activeCameraFacingMode() === 'user'"
+            [class.camera-screen-full__video--flipped]="activeCameraFacingMode() === 'user'"
+            [class.d-none]="!!capturedImageUrl()"
+          ></video>
+
+          <img
+            *ngIf="capturedImageUrl()"
+            [src]="capturedImageUrl()!"
+            [alt]="resolvedCopy().capturedImageAlt"
+            class="camera-screen__captured-image camera-screen__captured-image--full-frame camera-screen-full__captured-image"
+            [class.camera-screen__captured-image--result]="hasCompletedProcessingResultState()"
+          />
+
+          <canvas
+            #fullFrameOverlayEl
+            class="camera-screen__canvas--full-frame camera-screen-full__canvas"
+            [class.camera-screen-full__canvas--black]="shouldShowBlackFullFrameCanvas()"
+            aria-hidden="true"
+          ></canvas>
+
+          <div
+            *ngIf="rectangleFrame() && (state() === 'processing' || isGenerationLoading())"
+            class="camera-screen-full__processing-top"
+            aria-hidden="true"
+          ></div>
+        </div>
+
+        <img
+          class="camera-screen__rectangle-frame camera-screen-full__rectangle-frame"
+          [src]="resolvedAssets().rectangleFrameUrl"
+          alt=""
+          aria-hidden="true"
+        />
+      </div>
+
+      <p
+        *ngIf="shouldShowNoFaceState()"
+        class="camera-screen__no-face-message camera-screen-full__no-face-message mb-0"
+        aria-live="polite"
+      >
+        {{ noDetectedFaceText() }}
+      </p>
+    </section>
+
+    <footer
+      class="camera-screen__actions camera-screen-full__actions p-4"
+      [class.camera-screen__actions--processing]="shouldDimActionsState()"
+      [class.camera-screen-full__actions--processing]="shouldDimActionsState()"
+      [ngClass]="customClasses()?.actions"
+    >
+      <button
+        type="button"
+        class="camera-screen__capture-button"
+        [class.camera-screen__button--dimmed]="shouldDimActionsState()"
+        [ngClass]="customClasses()?.captureButton"
+        (click)="captureAndCompare()"
+        [attr.aria-label]="resolvedCopy().captureImageLabel"
+        [disabled]="shouldDimActionsState()"
+      >
+        <span class="camera-screen__capture-ring">
+          <span class="camera-screen__capture-core">
+            <svg
+              *ngIf="showCaptureCameraIcon() || state() === 'error'"
+              class="camera-screen__capture-icon icon-6"
+              viewBox="0 0 32 32"
+              focusable="false"
+              aria-hidden="true"
+            >
+              <use href="#icon-camera"></use>
+            </svg>
+          </span>
+        </span>
+      </button>
+
+      <label
+        class="camera-screen__upload-button"
+        [attr.aria-label]="resolvedCopy().uploadImageLabel"
+        [class.camera-screen__button--dimmed]="shouldDimActionsState()"
+        [attr.aria-disabled]="shouldDimActionsState()"
+        [ngClass]="customClasses()?.uploadButton"
+        (click)="onUploadClick()"
+      >
+        <input
+          type="file"
+          accept="image/*"
+          class="camera-screen__upload-input"
+          [attr.aria-label]="resolvedCopy().uploadImageLabel"
+          [disabled]="shouldDimActionsState()"
+          (change)="onImageFileSelected($event)"
+        />
+
+        <svg
+          class="camera-screen__upload-icon icon-6"
+          viewBox="0 0 32 32"
+          focusable="false"
+          aria-hidden="true"
+        >
+          <use href="#upload-image"></use>
+        </svg>
+      </label>
+    </footer>
+
+    <!-- <div
+      *ngIf="shouldShowMatchedResultActionState()"
+      class="camera-screen__result-action p-4"
+    >
+      <p class="camera-screen-full__matched-copy">{{ matchedResultText() }}</p>
+      <button
+        type="button"
+        class="camera-screen__matched-button"
+        [class.camera-screen__button--dimmed]="isMatchedActionDisabled()"
+        [disabled]="isMatchedActionDisabled()"
+        [attr.aria-disabled]="isMatchedActionDisabled()"
+        (click)="onTurnIntoMatchedPharaoh()"
+      >
+        {{ matchedActionLabel() }}
+      </button>
+    </div> -->
+  </main>
+</div>
+
+<svg
+  class="d-none"
+  aria-hidden="true"
+>
+  <symbol
+    id="upload-image"
+    viewBox="0 0 32 32"
+  >
+    <path
+      d="M4.157 19.194c-0.183 0.304-0.084 0.699 0.221 0.882s0.699 0.084 0.882-0.221l-1.102-0.661zM9.884 10.896l0.454-0.454c-0.14-0.14-0.337-0.208-0.533-0.183s-0.371 0.138-0.473 0.307l0.551 0.331zM17.955 18.967l-0.454 0.454c0.251 0.251 0.658 0.251 0.909 0l-0.454-0.454zM20.889 16.033l0.454-0.455c-0.251-0.251-0.658-0.251-0.909 0l0.454 0.454zM26.459 22.51c0.251 0.251 0.658 0.251 0.909-0s0.251-0.658-0-0.909l-0.909 0.909zM7.221 4.595v0zM26.913 4.595h0.643c0-0.355-0.288-0.643-0.643-0.643v0.643zM4.595 24.287v0zM4.708 19.525l0.551 0.331 5.176-8.629-1.102-0.661-5.176 8.628 0.551 0.331zM9.884 10.896l-0.454 0.454 8.071 8.071 0.909-0.909-8.071-8.071-0.454 0.454zM17.955 18.967l0.454 0.454 2.934-2.934-0.909-0.909-2.934 2.934 0.454 0.454zM20.889 16.033l-0.454 0.454 6.024 6.023 0.909-0.909-6.024-6.023-0.454 0.455zM24.369 9.19h-0.643c0 0.778-0.631 1.409-1.409 1.409v1.285c1.488 0 2.694-1.206 2.694-2.694h-0.643zM22.318 11.241v-0.643c-0.778 0-1.409-0.631-1.409-1.409h-1.285c0 1.488 1.206 2.694 2.694 2.694v-0.643zM20.267 9.19h0.643c0-0.778 0.631-1.409 1.409-1.409v-1.285c-1.488 0-2.694 1.206-2.694 2.694h0.643zM22.318 7.138v0.643c0.778 0 1.409 0.631 1.409 1.409h1.285c0-1.488-1.206-2.694-2.694-2.694v0.643zM7.221 4.595v0.643h19.692v-1.285h-19.692v0.643zM26.913 4.595h-0.643v19.692h1.285v-19.692h-0.643zM26.913 24.287h-0.643c0 0.526-0.209 1.030-0.581 1.402l0.909 0.909c0.613-0.613 0.957-1.444 0.957-2.311h-0.643zM26.144 26.144l-0.454-0.454c-0.372 0.372-0.876 0.581-1.402 0.581v1.285c0.867 0 1.698-0.344 2.311-0.957l-0.454-0.454zM24.287 26.913v-0.643h-17.067v1.285h17.067v-0.643zM7.221 26.913v-0.643c-0.526 0-1.030-0.209-1.402-0.581l-0.909 0.909c0.613 0.613 1.444 0.957 2.311 0.957v-0.643zM5.364 26.144l0.454-0.454c-0.372-0.372-0.581-0.876-0.581-1.402h-1.285c0 0.867 0.344 1.698 0.957 2.311l0.454-0.454zM4.595 24.287h0.643v-17.067h-1.285v17.067h0.643zM4.595 7.221h0.643c0-0.526 0.209-1.030 0.581-1.402l-0.909-0.909c-0.613 0.613-0.957 1.444-0.957 2.311h0.643zM5.364 5.364l0.454 0.454c0.372-0.372 0.876-0.581 1.402-0.581v-1.285c-0.867 0-1.698 0.344-2.311 0.957l0.454 0.454z"
+    ></path>
+  </symbol>
+  <symbol
+    id="icon-camera"
+    viewBox="0 0 32 32"
+  >
+    <path
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="3.3326"
+      d="M19.329 5.332h-6.665l-3.333 3.999h-3.999c-0.707 0-1.385 0.281-1.885 0.781s-0.781 1.178-0.781 1.885v11.997c0 0.707 0.281 1.385 0.781 1.885s1.178 0.781 1.885 0.781h21.328c0.707 0 1.385-0.281 1.885-0.781s0.781-1.178 0.781-1.885v-11.997c0-0.707-0.281-1.385-0.781-1.885s-1.178-0.781-1.885-0.781h-3.999l-3.333-3.999z"
+    ></path>
+    <path
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      stroke-miterlimit="4"
+      stroke-width="3.3326"
+      d="M15.996 21.328c2.209 0 3.999-1.79 3.999-3.999s-1.79-3.999-3.999-3.999c-2.209 0-3.999 1.79-3.999 3.999s1.79 3.999 3.999 3.999z"
+    ></path>
+  </symbol>
+</svg>

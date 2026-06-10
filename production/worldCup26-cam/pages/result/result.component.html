@@ -1,0 +1,107 @@
+<main
+  class="result"
+  aria-labelledby="result-title"
+  aria-describedby="result-subtitle"
+  [style.--result-bg-image]="'url(' + backgroundImageUrl() + ')'"
+>
+  <div class="result__content">
+    <section
+      id="world-cup26-cam-result-capture"
+      class="result__hero"
+    >
+      <header class="result__header">
+        <h1 class="result__headline mb-0">
+          {{ congratsTextKey() | translate }}
+        </h1>
+      </header>
+      <div class="result__identity">
+        <h2
+          id="result-title"
+          class="result__title mb-0"
+        >
+          <span class="result__title-line">
+            <app-world-cup26-cam-svg
+              class="result__title-icon"
+              [svg]="WC26_ICONS.RIGHT_SYMBOL"
+              [size]="6"
+              [role]="'presentation'"
+              aria-hidden="true"
+            />
+            <span class="result__title-text">
+              {{ CONTENT_PATH + '.content.youAreText' | translate }}
+              <span class="result__title-name">{{ matchedPharaoh()?.name }}</span>
+            </span>
+            <app-world-cup26-cam-svg
+              class="result__title-icon"
+              [svg]="WC26_ICONS.LEFT_SYMBOL"
+              [size]="6"
+              [role]="'presentation'"
+              aria-hidden="true"
+            />
+          </span>
+        </h2>
+
+        <p
+          id="result-subtitle"
+          class="result__subtitle"
+        >
+          {{ matchedPharaoh()?.description }}
+        </p>
+      </div>
+      <figure class="result__media">
+        <div
+          class="result__frame"
+          [class.result__frame--ready]="frameLoaded()"
+        >
+          <img
+            class="result__image"
+            [src]="resultImageUrl()"
+            [alt]="resultImageAlt()"
+          />
+
+          <img
+            *ngIf="frameLoaded()"
+            class="result__frame-image"
+            [src]="frameUrl"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
+      </figure>
+    </section>
+
+    <section
+      class="result__actions"
+      #actionsContainer
+      [class.result__actions--wrapped]="actionsWrapped()"
+      [class.result__actions--grow]="!hasWallet()"
+      aria-label="Result actions"
+    >
+      @if (showCashButton() && hasWallet()) {
+        <app-world-cup26-cam-button
+          class="result__action"
+          [customClass]="'btn-result-action'"
+          [labelKey]="CONTENT_PATH + '.content.stickerBtn'"
+          [variant]="'secondary'"
+          aria-label="Share result image"
+          (clicked)="createSticker()"
+        >
+        </app-world-cup26-cam-button>
+      }
+      <app-world-cup26-cam-button
+        class="result__action"
+        [customClass]="`btn-result-action btn-result-action-share`"
+        [labelKey]="CONTENT_PATH + '.content.saveAndShareBtn'"
+        aria-label="Save & Share result image"
+        (clicked)="saveAndSharePicture()"
+      >
+        <app-world-cup26-cam-svg
+          [svg]="WC26_ICONS.SHARE"
+          [size]="2"
+          [role]="'presentation'"
+          aria-hidden="true"
+        ></app-world-cup26-cam-svg>
+      </app-world-cup26-cam-button>
+    </section>
+  </div>
+</main>

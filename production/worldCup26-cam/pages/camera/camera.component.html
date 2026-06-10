@@ -1,0 +1,16 @@
+<app-pharaoh-similarity-camera
+  [backgroundImageUrl]="backgroundImageUrl()"
+  [config]="cameraConfig()"
+  [disableMatchedAction]="isProcessing()"
+  [rawPharaohs]="rawPharaohs()"
+  (cameraPermissionResolved)="trackCameraPermissionStatus($event)"
+  (similarityDetected)="onSimilarityDetected($event)"
+  (turnIntoMatchedPharaoh)="onTurnIntoMatchedPharaoh($event)"
+  (uploadClick)="trackUploadClick()"
+  (captureClick)="trackCaptureClick()"
+  [rectangleFrame]="true"
+  [rectangleFrameUrl]="rectangleFrameUrl()"
+  [faceFrameOverlayUrl]="faceFrameOverlayUrl()"
+  [errorIconUrl]="errorIconUrl()"
+  [isGenerationLoading]="isGenerationLoading()"
+></app-pharaoh-similarity-camera>

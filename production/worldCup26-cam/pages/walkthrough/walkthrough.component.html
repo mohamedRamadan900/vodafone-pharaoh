@@ -1,0 +1,54 @@
+<main
+  class="walkthrough"
+  aria-labelledby="walkthrough-title"
+  aria-describedby="walkthrough-subtitle"
+  [style.--walkthrough-bg-image]="'url(' + backgroundImageUrl() + ')'"
+>
+  <div class="walkthrough__content">
+    <header class="walkthrough__header">
+      <a
+        class="walkthrough__terms-link"
+        [href]="CONTENT_PATH + '.content.termsAndConditionsLink' | translate"
+        aria-label="Read terms and conditions"
+      >
+        {{ CONTENT_PATH + '.content.termsAndConditions' | translate }}
+      </a>
+    </header>
+
+    <section class="walkthrough__hero">
+      <h1
+        id="walkthrough-title"
+        class="walkthrough__title"
+      >
+        {{ CONTENT_PATH + '.content.walkthroughTitle' | translate }}
+      </h1>
+
+      <div
+        class="walkthrough__steps"
+        role="group"
+        aria-label="Walkthrough steps"
+      >
+        <div
+          class="walkthrough__step"
+          *ngFor="let step of getSteps(); let index = index"
+        >
+          <span class="walkthrough__step-marker">
+            <span class="walkthrough__step-number">{{ index + 1 | arabicNumber }}</span>
+          </span>
+          <span class="walkthrough__step-text">{{ step }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="walkthrough__actions"
+      aria-label="Experience actions"
+    >
+      <app-world-cup26-cam-button
+        (clicked)="navigateToCameraComponent()"
+        [labelKey]="CONTENT_PATH + '.content.walkthroughBtnText'"
+        aria-label="Start the World Cup 26 Cam experience"
+      />
+    </section>
+  </div>
+</main>

@@ -1,0 +1,59 @@
+<main
+  class="home"
+  aria-labelledby="home-title"
+  [style.--home-bg-image]="'url(' + backgroundImageUrl() + ')'"
+>
+  <div
+    class="home__background"
+    aria-hidden="true"
+  ></div>
+
+  <div class="home__content">
+    <header class="home__header">
+      <a
+        class="home__terms-link"
+        [href]="CONTENT_PATH + '.content.termsAndConditionsLink' | translate"
+        aria-label="Read terms and conditions"
+      >
+        {{ CONTENT_PATH + '.content.termsAndConditions' | translate }}
+      </a>
+    </header>
+
+    <section
+      class="home__hero"
+      aria-describedby="home-subtitle"
+    >
+      <div class="home__hero-content">
+        <img
+          id="home-image"
+          class="home__image"
+          [src]="CONTENT_PATH + '.images.giftsImage' | translate"
+        />
+
+        <p
+          id="home-title"
+          class="home__title"
+        >
+          {{ CONTENT_PATH + '.content.mainTitle' | translate }}
+        </p>
+        <p
+          id="home-subtitle"
+          class="home__subtitle"
+        >
+          {{ CONTENT_PATH + '.content.mainSubtitle' | translate }}
+        </p>
+      </div>
+
+      <section
+        class="home__actions"
+        aria-label="Experience actions"
+      >
+        <app-world-cup26-cam-button
+          (clicked)="navigateToWalkthrough()"
+          [labelKey]="CONTENT_PATH + '.content.startBtn' | translate"
+          aria-label="Start the World Cup 26 Cam experience"
+        />
+      </section>
+    </section>
+  </div>
+</main>

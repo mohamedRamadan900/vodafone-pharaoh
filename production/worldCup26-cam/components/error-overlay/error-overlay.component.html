@@ -1,0 +1,31 @@
+<div
+  class="error-overlay"
+  role="alert"
+  aria-live="assertive"
+  [style.--error-overlay-bg-image]="'url(' + backgroundImageUrl() + ')'"
+>
+  <div class="error-overlay__content">
+    <div
+      class="error-overlay__media"
+      aria-hidden="true"
+    >
+      <img
+        class="error-overlay__image"
+        [src]="overlay().imageKey | translate"
+        alt=""
+      />
+    </div>
+
+    <div class="error-overlay__copy">
+      <h2 class="error-overlay__title">{{ overlay().titleKey | translate }}</h2>
+      <!-- <p class="error-overlay__subtitle">{{ overlay().subtitleKey | translate }}</p> -->
+    </div>
+    <button
+      (click)="onAction()"
+      type="button"
+      class="error-overlay__error-button"
+    >
+      {{ overlay().buttonTextKey | translate }}
+    </button>
+  </div>
+</div>
