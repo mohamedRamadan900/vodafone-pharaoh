@@ -420,6 +420,8 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
   keypointWinners() {
     const r = this.detectedRatios();
     if (!r) return [];
+    const gender = this.detectedGender()?.value;
+    const pool = gender ? PHARAOHS.filter(p => p.gender === gender) : PHARAOHS;
     const dims: Array<{
       label: string;
       icon:  string;
@@ -431,12 +433,12 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
       { label: 'Face shape',   icon: '⬜', key: 'faceAspectRatio' },
     ];
     return dims.map(dim => {
-      const winner = PHARAOHS.reduce(
+      const winner = pool.reduce(
         (best, p) => {
           const diff = Math.abs(r[dim.key] - p.mpRatios[dim.key]);
           return diff < best.diff ? { pharaoh: p, diff } : best;
         },
-        { pharaoh: PHARAOHS[0], diff: Infinity },
+        { pharaoh: pool[0], diff: Infinity },
       );
       return { label: dim.label, icon: dim.icon, winner: winner.pharaoh };
     });
@@ -445,7 +447,9 @@ export class MediapipeMatcherComponent implements OnInit, OnDestroy {
   allScores() {
     const r = this.detectedRatios();
     if (!r) return [];
-    const dists = PHARAOHS.map(p => ({
+    const gender = this.detectedGender()?.value;
+    const pool = gender ? PHARAOHS.filter(p => p.gender === gender) : PHARAOHS;
+    const dists = pool.map(p => ({
       name:  p.name,
       color: p.accentColor,
       dist:  mpRatioDistance(r, p.mpRatios),

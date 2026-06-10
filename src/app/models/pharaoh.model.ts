@@ -111,10 +111,10 @@ export const PHARAOHS: PharaohProfile[] = [
     accentColor: '#5b8fc9',
     imageUrl: 'assets/pharaohs/nefertiti.jpg',
     gender: 'female',
-    // Signature: narrowest nose + narrow jaw (refined sculpted features)
-    ratios: { eyeSpanToFace: 0.47, noseWidthToFace: 0.16, mouthWidthToFace: 0.34, jawToFace: 0.80, noseLengthNorm: 0.47, mouthChinNorm: 0.26 },
-    // Refined, slightly elongated, narrow — high ears
-    mpRatios: { eyeXSpan: 0.39, nosePositionY: 0.62, earPositionY: 0.31, faceAspectRatio: 0.70 },
+    // Signature: EXTREME elongated/refined — narrowest nose, narrowest jaw, longest face (high ears, long nose)
+    ratios: { eyeSpanToFace: 0.52, noseWidthToFace: 0.13, mouthWidthToFace: 0.30, jawToFace: 0.76, noseLengthNorm: 0.54, mouthChinNorm: 0.21 },
+    // Extreme elongated narrow face — highest ears, longest nose position, narrowest aspect
+    mpRatios: { eyeXSpan: 0.40, nosePositionY: 0.67, earPositionY: 0.28, faceAspectRatio: 0.67 },
   },
   {
     id: 'akhenaten',
@@ -150,10 +150,10 @@ export const PHARAOHS: PharaohProfile[] = [
     accentColor: '#8bc9a8',
     imageUrl: 'assets/pharaohs/hatshepsut.jpg',
     gender: 'female',
-    // Signature: widest jaw + narrow mouth (commanding square-jawed face)
-    ratios: { eyeSpanToFace: 0.45, noseWidthToFace: 0.23, mouthWidthToFace: 0.30, jawToFace: 0.95, noseLengthNorm: 0.44, mouthChinNorm: 0.32 },
-    // Close-set eyes, wide square face, short nose
-    mpRatios: { eyeXSpan: 0.36, nosePositionY: 0.57, earPositionY: 0.44, faceAspectRatio: 0.84 },
+    // Signature: EXTREME wide/square — broadest nose, widest jaw, lowest ears (commanding square face)
+    ratios: { eyeSpanToFace: 0.43, noseWidthToFace: 0.28, mouthWidthToFace: 0.27, jawToFace: 0.97, noseLengthNorm: 0.43, mouthChinNorm: 0.36 },
+    // Extreme wide square face — very low ears, very wide, short nose position
+    mpRatios: { eyeXSpan: 0.35, nosePositionY: 0.54, earPositionY: 0.53, faceAspectRatio: 0.93 },
   },
   {
     id: 'thutmose-iii',
@@ -188,10 +188,10 @@ export const PHARAOHS: PharaohProfile[] = [
     accentColor: '#9b59b6',
     imageUrl: 'assets/pharaohs/cleopatra-vii.jpg',
     gender: 'female',
-    // Signature: wide eyes + wide mouth + moderate nose (diplomatic balanced face)
-    ratios: { eyeSpanToFace: 0.49, noseWidthToFace: 0.25, mouthWidthToFace: 0.39, jawToFace: 0.87, noseLengthNorm: 0.43, mouthChinNorm: 0.27 },
-    // Wide expressive eyes, balanced oval face, medium nose
-    mpRatios: { eyeXSpan: 0.46, nosePositionY: 0.59, earPositionY: 0.45, faceAspectRatio: 0.76 },
+    // Signature: CENTER of female face space — balanced oval, moderate all features (most "typical" female face)
+    ratios: { eyeSpanToFace: 0.47, noseWidthToFace: 0.22, mouthWidthToFace: 0.37, jawToFace: 0.86, noseLengthNorm: 0.45, mouthChinNorm: 0.27 },
+    // Balanced center — wins for the typical/average female face
+    mpRatios: { eyeXSpan: 0.43, nosePositionY: 0.59, earPositionY: 0.45, faceAspectRatio: 0.81 },
   },
   {
     id: 'amenhotep-iii',
